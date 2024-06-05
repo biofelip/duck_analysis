@@ -1,0 +1,7 @@
+path: F:\drone_footage
+train:  train\images
+val: val\images
+
+nc: 3
+names: ['Male', 'Female', 'Other']
+
