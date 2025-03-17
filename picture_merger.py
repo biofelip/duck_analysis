@@ -3,7 +3,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 import glob
 import os
 from utils import plot_images_pos, duck_image
-from rasterio.plot import show
+from tqdm import tqdm
 from rasterio.merge import merge
 import rasterio as rio
 
@@ -19,10 +19,16 @@ root_path=r"F:\drone_footage"
 images=glob.glob(os.path.join(root_path, "**//drone//*.JPG"))
 images_ann=glob.glob(os.path.join(root_path, "**//drone//annotated_image//*.JPG"))
 
-for image in images_ann:
+
+root_path=r"C:\Users\247404\ownCloud - juan.felipe.escobar.calderon@tiho-hannover.de@sync.academiccloud.de\Fotos Drohne"
+images=glob.glob(os.path.join(root_path, "*\\**\\*.jpg"), recursive=True)
+images_ann=glob.glob(os.path.join(root_path, "**\\annotated_results\\*.JPG"), recursive=True)
+images = [x for x in images if "annotated_results"  not in x]  
+images = [x for x in images if "crops"  not in x]  
+for image in tqdm(images_ann):
     # get image in images with the same name
     if os.path.basename(image) in [os.path.basename(x) for x in images]:
-        original_path=os.path.join(root_path,extract_grandparent(image,3),extract_grandparent(image,2) , os.path.basename(image))
+        original_path=os.path.join(root_path,extract_grandparent(image,4),extract_grandparent(image,3),extract_grandparent(image,2) ,extract_grandparent(image,1), os.path.basename(image))
         original=Image.open(original_path)
         annotated=Image.open(image)
         exif=original.getexif()
@@ -30,12 +36,12 @@ for image in images_ann:
 
 
 # creates plots and csv files 
-root_path=r"C:\Users\247404\ownCloud - juan.felipe.escobar.calderon@tiho-hannover.de@sync.academiccloud.de\Drone footage"
+root_path=r"C:\Users\247404\ownCloud - juan.felipe.escobar.calderon@tiho-hannover.de@sync.academiccloud.de\Fotos Drohne\Kontrollfluege"
 #root_path=r"F:\drone_footage"
 dirs=os.listdir(root_path)
 #dirs=dirs[:21]
 for direc in dirs:
-    images=glob.glob(os.path.join(root_path,direc, "drone\\**.jpg"))
+    images=glob.glob(os.path.join(root_path,direc, "\\**\\*.txt"), recursive=True)
     if len(images) > 0:
         plot_images_pos(images, savecsv=False, plot=True)
 

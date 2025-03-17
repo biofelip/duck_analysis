@@ -29,9 +29,16 @@ confidence=parser.parse_args().confidence
 # pattern="drone\*.jpg"
 # confidence=0.20
 
+root=r"C:\Users\247404\ownCloud - juan.felipe.escobar.calderon@tiho-hannover.de@sync.academiccloud.de\Fotos Drohne"
+model=r"C:\Users\247404\runs\detect\train6\weights\best.pt"
+pattern="*\\**\\*.jpg"
+confidence=0.35
+
 
 full_glob_path=os.path.join(root, pattern)
+
 images = glob.glob(full_glob_path, recursive=True)
+
 
 # run inference on all images
 

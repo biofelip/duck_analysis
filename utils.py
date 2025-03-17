@@ -18,7 +18,9 @@ def extract_gps_info(image_path):
     try:
         image = Image.open(image_path)
         exif_data = image._getexif()
-
+        if exif_data.get(271).strip("\x00") != "DJI":
+            Warning("Not a DJI image")
+            return (None,None)
         if exif_data is not None:
             for tag, value in exif_data.items():
                 tag_name = TAGS.get(tag, tag)
@@ -126,12 +128,16 @@ def plot_images_pos(images, savecsv=True, plot=True):
     exif_data=[]
     counts={}
     colors=[]
+    repeated_images = 0
     for image in images:
         exif_data.append(extract_gps_info(image))
         ducks=duck_image(image)
         ducks.load_image()
         ducks.bbox()
         ducks.count_detections()
+        if os.path.basename(image) in counts.keys():
+            print(f'this image is repeated # {repeated_images}')
+            repeated_images+=1
         counts[os.path.basename(image)]=ducks.number_of_detections
         if sum(ducks.number_of_detections.values()) == 0:
             colors.append("red")
@@ -142,7 +148,7 @@ def plot_images_pos(images, savecsv=True, plot=True):
         
 
     # we only need the second because the minutes and degrees are the same
-    coords=[(x[2], y[2]) for x,y in exif_data]  
+    coords=[(x[2], y[2]) for x,y in exif_data if x and y]  
     named_coords={f'{os.path.basename(image).split(".")[0]}(M:{count["Males"]},F:{count["Females"]},O:{count["Others"]})':coord for  image,count,coord in   zip(images,  counts.values(), coords)}
 
     coordinates = list(named_coords.values())
@@ -150,17 +156,6 @@ def plot_images_pos(images, savecsv=True, plot=True):
     print(coordinates)
     labels = list(named_coords.keys())
 
-    # Plotting the points
-    plt.scatter(*zip(*coordinates), marker='o', color=colors)
-
-    # Adding labels to each point
-    for label, (x, y) in zip(labels, coordinates):
-        plt.text(x, y, label)
-
-    # Adding labels and title
-    plt.xlabel('Latitude')
-    plt.ylabel('Longitude')
-    plt.title(str(extract_grandparent(images[0],2)))
 
     # CREATE A PANDAS DATAFRAME WITH ALL THE INFORMATION
     df=pd.DataFrame({"date":[extract_grandparent(image, 2) for image in images],
@@ -177,4 +172,80 @@ def plot_images_pos(images, savecsv=True, plot=True):
 
     # Display the plot
     if plot:
+            
+        # Plotting the points
+        plt.scatter(*zip(*coordinates), marker='o', color=colors)
+
+        # Adding labels to each point
+        for label, (x, y) in zip(labels, coordinates):
+            plt.text(x, y, label)
+
+        # Adding labels and title
+        plt.xlabel('Latitude')
+        plt.ylabel('Longitude')
+        plt.title(str(extract_grandparent(images[0],2)))
+        plt.show()
+
+def plot_images_pos2025(images, savecsv=True, plot=True):
+    exif_data=[]
+    counts={}
+    colors=[]
+    repeated_images = 0
+    for image in images:
+        exif_data.append(extract_gps_info(image))
+        ducks=duck_image(image)
+        ducks.load_image()
+        ducks.bbox()
+        ducks.count_detections()
+        if os.path.basename(image) in counts.keys():
+            print(f'this image is repeated # {repeated_images}')
+            repeated_images+=1
+        counts[image]=ducks.number_of_detections
+        if sum(ducks.number_of_detections.values()) == 0:
+            colors.append("red")
+        else:
+            colors.append("green")
+
+
+        
+
+    # we only need the second because the minutes and degrees are the same
+    coords=[(x[2], y[2]) for x,y in exif_data if x and y]  
+    named_coords={f'{os.path.basename(image).split(".")[0]}(M:{count["Males"]},F:{count["Females"]},O:{count["Others"]})':coord for  image,count,coord in   zip(images,  counts.values(), coords)}
+
+    coordinates = list(named_coords.values())
+    coordinates = [rotate_point(x, y, 0.9) for x, y in coordinates]
+    print(coordinates)
+    labels = list(named_coords.keys())
+
+
+    # CREATE A PANDAS DATAFRAME WITH ALL THE INFORMATION
+    df=pd.DataFrame({
+                    # "date":[extract_grandparent(image, 2) for image in images],
+                    # 'label':labels, 
+                     'file':images,
+                     'latitude': [x[0] for x in coords], 
+                     'longitude': [x[1] for x in coords],
+                     'Males': [count["Males"] for count in counts.values()],
+                     'Females': [count["Females"] for count in counts.values()],
+                     'Others': [count["Others"] for count in counts.values()]})
+
+    if savecsv:
+         df.to_csv(str(os.path.dirname(images[0]))+'.csv', index=False)
+
+
+    # Display the plot
+    if plot:
+            
+        # Plotting the points
+        plt.scatter(*zip(*coordinates), marker='o', color=colors)
+
+        # Adding labels to each point
+        for label, (x, y) in zip(labels, coordinates):
+            plt.text(x, y, label)
+
+        # Adding labels and title
+        plt.xlabel('Latitude')
+        plt.ylabel('Longitude')
+        plt.title(str(extract_grandparent(images[0],2)))
         plt.show()
