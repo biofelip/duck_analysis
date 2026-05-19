@@ -1,3 +1,4 @@
+
 from ultralytics import YOLO
 import os
 import glob 
@@ -29,7 +30,7 @@ confidence=parser.parse_args().confidence
 # pattern="drone\*.jpg"
 # confidence=0.20
 
-root=r"C:\Users\247404\ownCloud - juan.felipe.escobar.calderon@tiho-hannover.de@sync.academiccloud.de\Fotos Drohne"
+root=r"C:\Users\247404\ownCloud - juan.felipe.escobar.calderon@tiho-hannover.de@sync.academiccloud.de\Drohnenfotos 2025_2026"
 model=r"C:\Users\247404\runs\detect\train6\weights\best.pt"
 pattern="*\\**\\*.jpg"
 confidence=0.35
@@ -38,14 +39,20 @@ confidence=0.35
 full_glob_path=os.path.join(root, pattern)
 
 images = glob.glob(full_glob_path, recursive=True)
+len(images)
 
+images_to_exclude = ["DJI_20251212104104_0001_W_Wegpunkt1.JPG", 
+                     "DJI_20251216113207_0001_W.JPG", 
+                     "DJI_20251216113242_0002_W.JPG"]
 
+images = [x for x in images if os.path.basename(x) not in images_to_exclude]
+len(images)
 # run inference on all images
 
 model = YOLO(model)
 results=[]
 for image in tqdm(images, total=len(images)):
-    results = model.predict(image, conf=confidence, iou=0.50, agnostic_nms=True, augment=True)
+    results = model.predict(image, conf=confidence, iou=0.2, agnostic_nms=True, augment=True)
     # if len(results.boxes) > 0:
     #     im_array = results.plot()  # plot a BGR numpy array of predictions
     #     im = Image.fromarray(im_array[..., ::-1])  # RGB PIL image
